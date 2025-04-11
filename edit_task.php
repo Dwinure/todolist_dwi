@@ -29,7 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['task'])) {
     $stmt = $pdo->prepare("UPDATE tasks SET task = ? WHERE id = ? AND user_id = ?");
     $stmt->execute([$task, $task_id, $user_id]);
 
-    header("Location: index.php");
+    // Menampilkan alert menggunakan JavaScript
+    echo "<script>
+            alert('Tugas berhasil diubah');
+            window.location.href = 'index.php';
+          </script>";
     exit();
 }
 ?>

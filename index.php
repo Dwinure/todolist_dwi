@@ -74,7 +74,7 @@ $tasks = $tasks->fetchAll();
             color: white;
         }
         .logout-button {
-            background: red;
+            background:linear-gradient(to right, #8FBC8F, #8FBC8F);
             color: white;
             padding: 8px 15px;
             border-radius: 5px;

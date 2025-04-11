@@ -14,6 +14,12 @@ if (!$task_id) {
     header("Location: index.php");
     exit();
 }
+// Tandai semua subtugas sebagai selesai
+if (isset($_GET['complete_all'])) {
+    $stmt = $pdo->prepare("UPDATE subtasks SET status = 1 WHERE task_id = ?");
+    $stmt->execute([$task_id]);
+    exit();
+}
 
 // Mengambil informasi tugas utama
 $stmt = $pdo->prepare("SELECT * FROM tasks WHERE id = ? AND user_id = ?");
@@ -131,7 +137,14 @@ if (isset($_GET['update_status']) && isset($_GET['subtask_id'])) {
             border: 1px solid white;
             background-color: #8FBC8F;
         }
-        .completed { text-decoration: line-through; color: gray; }
+        .completed {
+            opacity: 0.5;
+            text-decoration: none; /* Remove crossed-out effect */
+        }
+        .delete-subtask {
+            opacity: 1;
+            cursor: pointer;
+        }
     </style>
     <script>
         function updateStatus(subtaskId) {
@@ -145,6 +158,13 @@ if (isset($_GET['update_status']) && isset($_GET['subtask_id'])) {
                     row.classList.add('completed'); // Tambahkan efek coretan
                     document.getElementById(`edit-${subtaskId}`).style.display = 'none'; // Sembunyikan tombol edit
                 });
+        }
+
+        function completeAllTasks() {
+            if (confirm('Apakah Anda yakin ingin menyelesaikan semua subtugas?')) {
+                fetch(`subtasks.php?task_id=<?= $task_id ?>&complete_all=1`)
+                    .then(() => location.reload());
+            }
         }
     </script>
 </head>
@@ -162,6 +182,7 @@ if (isset($_GET['update_status']) && isset($_GET['subtask_id'])) {
                 <option value="Tidak Penting">Tidak Penting</option>
             </select>
             <button type="submit">➕ Tambah Subtugas</button>
+            <button type="button" onclick="completeAllTasks()">✅ Selesaikan Semua</button>
         </form>
 
         <table>
@@ -189,7 +210,9 @@ if (isset($_GET['update_status']) && isset($_GET['subtask_id'])) {
                             <?php if ($subtask['status'] == 0): ?>
                                 <a id="edit-<?= $subtask['id'] ?>" href="edit_subtask.php?subtask_id=<?= $subtask['id'] ?>&task_id=<?= $task_id ?>">✏ Edit</a>
                             <?php endif; ?>
-                            <a href="subtasks.php?task_id=<?= $task_id ?>&delete_subtask=<?= $subtask['id'] ?>" onclick="return confirm('Hapus subtugas ini?')">🗑 Hapus</a>
+                            <a class="delete-subtask <?= $subtask['status'] == 1 ? 'completed' : '' ?>"
+                               href="subtasks.php?task_id=<?= $task_id ?>&delete_subtask=<?= $subtask['id'] ?>"
+                               onclick="return confirm('Hapus subtugas ini?')">🗑 Hapus</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>

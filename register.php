@@ -4,20 +4,27 @@ include 'db.php';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $password = $_POST['password'];
 
-    $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-    if ($stmt->execute([$username, $email, $password])) {
-        header("Location: login.php");
-        exit();
+    if (strlen($password) < 6) {
+        $error = "Password harus memiliki minimal 6 karakter!";
+    } elseif (preg_match('/\s/', $username)) {  // Cek apakah ada spasi
+        $error = "Username tidak boleh mengandung spasi!";
     } else {
-        $error = "Gagal mendaftar!";
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+        if ($stmt->execute([$username, $email, $hashed_password])) {
+            echo "<script>alert('Akun berhasil dibuat!'); window.location.href='login.php';</script>";
+            exit();
+        } else {
+            $message = "Gagal mendaftar!";
+        }
     }
 }
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <title>Register</title>
@@ -109,5 +116,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <p>Sudah punya akun? <a href="login.php">Login sekarang</a></p>
         <?php if (isset($error)) echo "<p class='error'>$error</p>"; ?>
     </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.querySelector("form");
+        form.addEventListener("submit", function(event) {
+            const username = document.querySelector('input[name="username"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+
+            // Validasi di Frontend (JavaScript)
+            if (password.length < 6) {
+                alert("Password harus minimal 6 karakter!"); // Menambahkan alert jika password kurang dari 6 karakter
+                event.preventDefault();
+            } else if (/\s/.test(username)) { // Cek apakah ada spasi dalam username
+                alert("Username tidak boleh mengandung spasi!");
+                event.preventDefault();
+            }
+        });
+    });
+    </script>
 </body>
 </html>

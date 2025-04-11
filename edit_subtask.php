@@ -46,6 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt = $pdo->prepare("UPDATE subtasks SET subtask = ?, due_date = ?, aksi = ? WHERE id = ?");
     $stmt->execute([$subtask_name, $due_date, $aksi, $subtask_id]);
 
+    // Set a success message to be displayed after the page reloads
+    $_SESSION['message'] = 'Subtugas berhasil diubah';
+
     // Setelah berhasil update, kembali ke halaman subtasks.php dengan task_id
     header("Location: subtasks.php?task_id=$task_id");
     exit();
@@ -148,5 +151,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <button type="submit">📝 Update Subtugas</button>
         </form>
     </div>
+
+    <!-- Optionally show a JavaScript alert as well -->
+    <script>
+        // Display an alert message if there's a session message set
+        <?php if (isset($_SESSION['message'])): ?>
+            alert("<?= $_SESSION['message'] ?>");
+            <?php unset($_SESSION['message']); // Clear message after displaying it ?>
+        <?php endif; ?>
+    </script>
 </body>
 </html>
