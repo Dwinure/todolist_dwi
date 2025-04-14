@@ -14,6 +14,7 @@ if (!$task_id) {
     header("Location: index.php");
     exit();
 }
+
 // Tandai semua subtugas sebagai selesai
 if (isset($_GET['complete_all'])) {
     $stmt = $pdo->prepare("UPDATE subtasks SET status = 1 WHERE task_id = ?");
@@ -64,8 +65,16 @@ if (isset($_GET['delete_subtask'])) {
 // Update status subtugas
 if (isset($_GET['update_status']) && isset($_GET['subtask_id'])) {
     $subtask_id = $_GET['subtask_id'];
-    $stmt = $pdo->prepare("UPDATE subtasks SET status = 1 WHERE id = ?");
+
+    // Cegah update jika sudah selesai (optional tapi aman)
+    $stmt = $pdo->prepare("SELECT status FROM subtasks WHERE id = ?");
     $stmt->execute([$subtask_id]);
+    $status = $stmt->fetchColumn();
+
+    if ($status == 0) {
+        $stmt = $pdo->prepare("UPDATE subtasks SET status = 1 WHERE id = ?");
+        $stmt->execute([$subtask_id]);
+    }
     exit();
 }
 ?>
@@ -139,7 +148,6 @@ if (isset($_GET['update_status']) && isset($_GET['subtask_id'])) {
         }
         .completed {
             opacity: 0.5;
-            text-decoration: none; /* Remove crossed-out effect */
         }
         .delete-subtask {
             opacity: 1;
@@ -153,10 +161,12 @@ if (isset($_GET['update_status']) && isset($_GET['subtask_id'])) {
                     let checkbox = document.getElementById(`subtask-${subtaskId}`);
                     let row = document.getElementById(`row-${subtaskId}`);
                     
-                    checkbox.checked = true;  // Tetap diceklis
-                    checkbox.disabled = true; // Tidak bisa di-unceklis
-                    row.classList.add('completed'); // Tambahkan efek coretan
-                    document.getElementById(`edit-${subtaskId}`).style.display = 'none'; // Sembunyikan tombol edit
+                    checkbox.checked = true;
+                    checkbox.disabled = true;
+                    row.classList.add('completed');
+                    
+                    let editBtn = document.getElementById(`edit-${subtaskId}`);
+                    if (editBtn) editBtn.style.display = 'none';
                 });
         }
 
